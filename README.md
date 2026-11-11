@@ -2,7 +2,7 @@
 
 ⚡ Colección de acciones personalizadas e integración avanzada para el menú contextual del gestor de archivos Nemo en Linux Mint. ¡Potencia tu flujo de trabajo con un solo clic derecho!
 
-![Vista previa de las acciones](screenshots/Preview.png)
+![Vista previa de las acciones](screenshots/preview.png)
 
 ## ✨ Características principales
 * **Integración nativa:** Acceso rápido y directo desde el menú contextual (clic derecho) de Nemo.
