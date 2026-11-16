@@ -1,0 +1,10 @@
+[Nemo Action]
+Quote=double
+Active=true
+Name=Nuevo Documento de Texto (Writer)
+Comment=Crea un documento de LibreOffice Writer en esta carpeta
+Exec=/usr/local/bin/abuelazo-nuevo-documento odt %P
+Icon-Name=libreoffice-writer
+Selection=none
+Extensions=any;
+Dependencies=libreoffice;

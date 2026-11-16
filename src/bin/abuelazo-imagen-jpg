@@ -1,0 +1,23 @@
+#!/bin/bash
+# Convierte una imagen a JPG con fondo blanco si tiene transparencia.
+set -u
+ARCHIVO="${1:-}"
+[ -n "$ARCHIVO" ] || exit 1
+if [[ "$ARCHIVO" == file://* ]]; then
+  ARCHIVO=$(python3 -c "import sys,urllib.parse;print(urllib.parse.unquote(sys.argv[1][7:]))" "$ARCHIVO")
+fi
+[ -f "$ARCHIVO" ] || { notify-send "El Abuelazo Tech" "No se encuentra la imagen"; exit 1; }
+if command -v magick >/dev/null 2>&1; then IM=magick; else IM=convert; fi
+
+BASE="${ARCHIVO%.*}"
+SALIDA="$BASE.jpg"
+i=2
+while [ -e "$SALIDA" ]; do SALIDA="$BASE-$i.jpg"; i=$((i+1)); done
+
+LOG=$(mktemp /tmp/abuelazo-jpg-XXXX.log)
+if "$IM" "${ARCHIVO}[0]" -auto-orient -background white -flatten -quality 92 -strip "$SALIDA" >"$LOG" 2>&1; then
+  notify-send "El Abuelazo Tech" "Imagen convertida: $(basename "$SALIDA")"
+else
+  notify-send "El Abuelazo Tech" "Error al convertir la imagen. Detalles: $LOG"
+  exit 1
+fi

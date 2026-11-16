@@ -1,0 +1,10 @@
+[Nemo Action]
+Quote=double
+Active=true
+Name=Nueva Presentación (Impress)
+Comment=Crea una presentación de LibreOffice Impress en esta carpeta
+Exec=/usr/local/bin/abuelazo-nuevo-documento odp %P
+Icon-Name=libreoffice-impress
+Selection=none
+Extensions=any;
+Dependencies=libreoffice;

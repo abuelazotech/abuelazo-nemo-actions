@@ -1,0 +1,31 @@
+#!/bin/bash
+# Miniatura de YouTube 1280x720: recorta centrado, sin deformar.
+set -u
+ARCHIVO="${1:-}"
+[ -n "$ARCHIVO" ] || exit 1
+if [[ "$ARCHIVO" == file://* ]]; then
+  ARCHIVO=$(python3 -c "import sys,urllib.parse;print(urllib.parse.unquote(sys.argv[1][7:]))" "$ARCHIVO")
+fi
+[ -f "$ARCHIVO" ] || { notify-send "El Abuelazo Tech" "No se encuentra la imagen"; exit 1; }
+if command -v magick >/dev/null 2>&1; then IM=magick; else IM=convert; fi
+
+BASE="${ARCHIVO%.*}"
+SALIDA="${BASE}_miniatura.jpg"
+i=2
+while [ -e "$SALIDA" ]; do SALIDA="${BASE}_miniatura-$i.jpg"; i=$((i+1)); done
+
+LOG=$(mktemp /tmp/abuelazo-miniatura-XXXX.log)
+if "$IM" "${ARCHIVO}[0]" -auto-orient -background white -flatten \
+     -resize 1280x720^ -gravity center -extent 1280x720 \
+     -quality 90 -strip "$SALIDA" >"$LOG" 2>&1; then
+  KB=$(du -k "$SALIDA" | cut -f1)
+  if [ "$KB" -gt 2048 ]; then
+    "$IM" "$SALIDA" -quality 82 -strip "$SALIDA" 2>>"$LOG"
+    notify-send "El Abuelazo Tech" "Miniatura lista (comprimida para YouTube): $(basename "$SALIDA")"
+  else
+    notify-send "El Abuelazo Tech" "Miniatura lista: $(basename "$SALIDA") (${KB} KB)"
+  fi
+else
+  notify-send "El Abuelazo Tech" "Error al crear la miniatura. Detalles: $LOG"
+  exit 1
+fi

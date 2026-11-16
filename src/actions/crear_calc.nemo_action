@@ -1,0 +1,10 @@
+[Nemo Action]
+Quote=double
+Active=true
+Name=Nueva Hoja de Cálculo (Calc)
+Comment=Crea una hoja de cálculo de LibreOffice Calc en esta carpeta
+Exec=/usr/local/bin/abuelazo-nuevo-documento ods %P
+Icon-Name=libreoffice-calc
+Selection=none
+Extensions=any;
+Dependencies=libreoffice;

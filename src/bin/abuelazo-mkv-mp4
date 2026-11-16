@@ -1,0 +1,30 @@
+#!/bin/bash
+# MKV -> MP4. Intenta copia rápida y, si el audio no es compatible, lo pasa a AAC.
+set -u
+ARCHIVO="${1:-}"
+[ -n "$ARCHIVO" ] || exit 1
+if [[ "$ARCHIVO" == file://* ]]; then
+  ARCHIVO=$(python3 -c "import sys,urllib.parse;print(urllib.parse.unquote(sys.argv[1][7:]))" "$ARCHIVO")
+fi
+[ -f "$ARCHIVO" ] || { notify-send "El Abuelazo Tech" "No se encuentra el archivo"; exit 1; }
+
+BASE="${ARCHIVO%.*}"
+SALIDA="$BASE.mp4"
+i=2
+while [ -e "$SALIDA" ]; do SALIDA="$BASE-$i.mp4"; i=$((i+1)); done
+
+LOG=$(mktemp /tmp/abuelazo-mkv-XXXX.log)
+if ffmpeg -nostdin -n -i "$ARCHIVO" -c copy -movflags +faststart "$SALIDA" >"$LOG" 2>&1; then
+  notify-send "El Abuelazo Tech" "Convertido a MP4 (rápido): $(basename "$SALIDA")"
+  exit 0
+fi
+
+# El intento rápido dejó un archivo a medias: se borra SOLO ese, nunca uno previo.
+rm -f "$SALIDA"
+notify-send "El Abuelazo Tech" "Audio no compatible con MP4: convirtiendo a AAC…"
+if ffmpeg -nostdin -n -i "$ARCHIVO" -c:v copy -c:a aac -b:a 192k -sn -movflags +faststart "$SALIDA" >>"$LOG" 2>&1; then
+  notify-send "El Abuelazo Tech" "Convertido a MP4: $(basename "$SALIDA")"
+else
+  notify-send "El Abuelazo Tech" "Error al convertir. Detalles: $LOG"
+  exit 1
+fi

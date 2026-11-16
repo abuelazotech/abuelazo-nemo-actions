@@ -1,0 +1,28 @@
+#!/bin/bash
+# Crea un documento en blanco de LibreOffice en la carpeta indicada.
+# Uso: abuelazo-nuevo-documento <extension> <carpeta>
+set -u
+ext="$1"
+dir="$2"
+
+case "$ext" in
+  odt) base="Nuevo_Documento" ;;
+  ods) base="Nueva_Hoja_De_Calculo" ;;
+  odp) base="Nueva_Presentacion" ;;
+  odg) base="Nuevo_Dibujo" ;;
+  odf) base="Nueva_Formula" ;;
+  *)   base="Nuevo_Archivo" ;;
+esac
+
+destino="$dir/$base.$ext"
+i=2
+while [ -e "$destino" ]; do
+  destino="$dir/$base-$i.$ext"
+  i=$((i+1))
+done
+
+if ! touch "$destino" 2>/dev/null; then
+  notify-send "El Abuelazo Tech" "No se pudo crear el archivo. ¿Permisos de la carpeta?"
+  exit 1
+fi
+libreoffice "$destino" >/dev/null 2>&1 &

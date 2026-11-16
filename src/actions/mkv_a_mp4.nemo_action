@@ -1,0 +1,10 @@
+[Nemo Action]
+Quote=double
+Active=true
+Name=Convertir MKV a MP4 (Rápido)
+Comment=Cambia el contenedor de MKV a MP4 en segundos
+Exec=/usr/local/bin/abuelazo-mkv-mp4 %F
+Icon-Name=video-x-generic
+Selection=s
+Extensions=mkv;
+Dependencies=ffmpeg;

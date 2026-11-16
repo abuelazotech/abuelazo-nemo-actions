@@ -1,0 +1,10 @@
+[Nemo Action]
+Quote=double
+Active=true
+Name=Nuevo Dibujo / Editor PDF (Draw)
+Comment=Crea un documento de LibreOffice Draw en esta carpeta
+Exec=/usr/local/bin/abuelazo-nuevo-documento odg %P
+Icon-Name=libreoffice-draw
+Selection=none
+Extensions=any;
+Dependencies=libreoffice;

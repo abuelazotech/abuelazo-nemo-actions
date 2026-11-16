@@ -1,0 +1,22 @@
+#!/bin/bash
+# Extrae el audio a MP3 sin sobrescribir nada.
+set -u
+ARCHIVO="${1:-}"
+[ -n "$ARCHIVO" ] || exit 1
+if [[ "$ARCHIVO" == file://* ]]; then
+  ARCHIVO=$(python3 -c "import sys,urllib.parse;print(urllib.parse.unquote(sys.argv[1][7:]))" "$ARCHIVO")
+fi
+[ -f "$ARCHIVO" ] || { notify-send "El Abuelazo Tech" "No se encuentra el archivo"; exit 1; }
+
+BASE="${ARCHIVO%.*}"
+SALIDA="$BASE.mp3"
+i=2
+while [ -e "$SALIDA" ]; do SALIDA="$BASE-$i.mp3"; i=$((i+1)); done
+
+LOG=$(mktemp /tmp/abuelazo-audio-XXXX.log)
+if ffmpeg -nostdin -n -i "$ARCHIVO" -vn -c:a libmp3lame -q:a 2 "$SALIDA" >"$LOG" 2>&1; then
+  notify-send "El Abuelazo Tech" "Audio extraído: $(basename "$SALIDA")"
+else
+  notify-send "El Abuelazo Tech" "Error al extraer el audio. Detalles: $LOG"
+  exit 1
+fi
