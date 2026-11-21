@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Aplicar permisos 644
+Comment=Asigna permisos de solo lectura y escritura (644)
+Exec=/usr/bin/abuelazo-permisos 644 %F
+Icon-Name=document-properties
+Selection=m
+Extensions=any;
+Quote=double
+Dependencies=chmod;
+Terminal=false

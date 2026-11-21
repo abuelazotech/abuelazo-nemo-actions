@@ -1,0 +1,32 @@
+#!/bin/bash
+set -uo pipefail
+LIB="${ABUELAZO_LIB_DIR:-/usr/share/abuelazo-nemo-actions/lib}/abuelazo-common.sh"
+if [[ ! -f $LIB ]]; then
+  printf 'No se encontró la librería común de Abuelazo.\n' >&2
+  exit 1
+fi
+source "$LIB"
+es_decimal() {
+  [[ $1 =~ ^[0-9]+([.][0-9]+)?$ ]]
+}
+aba_requerir_args 1 1 "$#"
+ARCHIVO="$(aba_decodificar_uri "${1:-}")"
+LOG=$(aba_log_temporal 'frames')
+trap 'rm -f -- "$LOG"' EXIT
+aba_requerir ffmpeg zenity
+[[ -n $ARCHIVO ]] || aba_error 'Falta el archivo de vídeo'
+[[ -f $ARCHIVO ]] || aba_error "No se encuentra el vídeo: $ARCHIVO"
+INTERVALO=$(aba_entrada 'Intervalo en segundos' '2') || aba_error 'No se pudo leer el intervalo'
+es_decimal "$INTERVALO" || aba_error 'El intervalo debe ser un número decimal'
+if ! python3 -c 'import sys; valor=float(sys.argv[1]); sys.exit(0 if valor > 0 else 1)' "$INTERVALO"; then
+  aba_error 'El intervalo debe ser mayor que 0'
+fi
+BASE="${ARCHIVO%.*}"
+DIRECTORIO=$(aba_salida_unica_sufijo "$BASE" "_frames" "")
+mkdir -p -- "$DIRECTORIO" || aba_error 'No se pudo crear el directorio de fotogramas'
+if ! ffmpeg -i "$ARCHIVO" -vf "fps=1/$INTERVALO" "$DIRECTORIO/frame_%04d.png" >"$LOG" 2>&1; then
+  DETALLES=$(<"$LOG")
+  aba_error "No se pudieron extraer los fotogramas. $DETALLES"
+fi
+compgen -G "$DIRECTORIO/frame_*.png" >/dev/null || aba_error 'No se extrajeron fotogramas'
+aba_resultado 'Fotogramas creados' "$DIRECTORIO"

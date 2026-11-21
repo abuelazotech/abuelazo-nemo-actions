@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Configurar Abuelazo Nemo Actions
+GenericName=Configurador de acciones de Nemo
+Comment=Activa o desactiva las acciones de Abuelazo para Nemo
+Exec=/usr/bin/abuelazo-nemo-config --first-run
+Icon=preferences-system
+Terminal=false
+Type=Application
+Categories=Settings;Utility;
+StartupNotify=true
+NoDisplay=true
+X-GNOME-Autostart-enabled=true

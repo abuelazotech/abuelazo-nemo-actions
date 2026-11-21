@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Descifrar archivo
+Comment=Restaura el archivo original desde su versión cifrada
+Exec=/usr/bin/abuelazo-descifrar-archivo %F
+Icon-Name=dialog-password
+Selection=s
+Extensions=gpg;asc;
+Quote=double
+Dependencies=gpg;zenity;
+Terminal=false

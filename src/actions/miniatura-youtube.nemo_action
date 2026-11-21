@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Crear miniatura para YouTube
+Comment=Prepara la imagen seleccionada como miniatura de YouTube
+Exec=/usr/bin/abuelazo-miniatura-youtube %F
+Icon-Name=video-x-generic
+Selection=s
+Extensions=png;jpg;jpeg;webp;
+Quote=double
+Dependencies=convert;
+Terminal=false

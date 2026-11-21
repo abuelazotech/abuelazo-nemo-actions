@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Convertir MKV a MP4
+Comment=Convierte el vídeo MKV seleccionado a MP4
+Exec=/usr/bin/abuelazo-mkv-mp4 %F
+Icon-Name=video-x-generic
+Selection=s
+Extensions=mkv;
+Quote=double
+Dependencies=ffmpeg;
+Terminal=false

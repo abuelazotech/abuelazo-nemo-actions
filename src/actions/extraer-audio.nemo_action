@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Extraer audio a MP3
+Comment=Extrae el audio del vídeo seleccionado a MP3
+Exec=/usr/bin/abuelazo-extraer-audio %F
+Icon-Name=audio-x-generic
+Selection=s
+Extensions=mp4;mkv;webm;avi;mov;
+Quote=double
+Dependencies=ffmpeg;
+Terminal=false

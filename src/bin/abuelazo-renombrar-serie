@@ -1,0 +1,45 @@
+#!/bin/bash
+set -uo pipefail
+LIB="${ABUELAZO_LIB_DIR:-/usr/share/abuelazo-nemo-actions/lib}/abuelazo-common.sh"
+[[ -f $LIB ]] || { printf 'No se encontró la librería común de Abuelazo.\n' >&2; exit 1; }
+. "$LIB"
+
+aba_requerir_args 2 "$#" "$#"
+PREFIJO=$(aba_entrada 'Prefijo de la serie' archivo 2>/dev/null) || PREFIJO='archivo'
+[[ -n $PREFIJO ]] || PREFIJO='archivo'
+PREFIJO="${PREFIJO//\//_}"
+PREFIJO="${PREFIJO// /_}"
+ORIGINALES=()
+DESTINOS=()
+INDICE=1
+for ARGUMENTO in "$@"; do
+  ARCHIVO=$(aba_decodificar_uri "$ARGUMENTO")
+  [[ -f $ARCHIVO ]] || aba_error "No se encuentra el archivo: $ARCHIVO"
+  NOMBRE=$(basename -- "$ARCHIVO")
+  EXT=''
+  if [[ $NOMBRE == *.* ]]; then
+    EXT="${NOMBRE##*.}"
+  fi
+  DIRECTORIO="${ARCHIVO%/*}"
+  [[ $DIRECTORIO == "$ARCHIVO" ]] && DIRECTORIO='.'
+  NOMBRE_DESTINO=$(printf '%s_%03d' "$PREFIJO" "$INDICE")
+  DESTINO=$(aba_salida_unica "$DIRECTORIO/$NOMBRE_DESTINO" "$EXT")
+  ORIGINALES+=("$ARCHIVO")
+  DESTINOS+=("$DESTINO")
+  INDICE=$((INDICE + 1))
+done
+for (( i=0; i<${#DESTINOS[@]}; i++ )); do
+  [[ -e ${DESTINOS[i]} ]] && aba_error "El destino ya existe: ${DESTINOS[i]}"
+  for (( j=i+1; j<${#DESTINOS[@]}; j++ )); do
+    [[ ${DESTINOS[i]} == "${DESTINOS[j]}" ]] && aba_error 'Dos archivos tendrían el mismo nombre de destino.'
+  done
+done
+if ! aba_confirmar "¿Renombrar ${#ORIGINALES[@]} archivos con el prefijo $PREFIJO?"; then
+  aba_notificar "$ABA_TITULO" 'Operación cancelada.'
+  exit 0
+fi
+for (( i=0; i<${#ORIGINALES[@]}; i++ )); do
+  mv -n -- "${ORIGINALES[i]}" "${DESTINOS[i]}" || aba_error "No se pudo renombrar: ${ORIGINALES[i]}"
+done
+DIRECTORIO=$(dirname -- "${DESTINOS[0]}")
+aba_resultado "Archivos renombrados con el prefijo $PREFIJO" "$DIRECTORIO"

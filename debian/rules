@@ -1,0 +1,49 @@
+#!/usr/bin/make -f
+
+DESTDIR := debian/abuelazo-nemo-actions
+
+%:
+	dh $@
+
+override_dh_auto_install:
+	install -d -m 0755 $(DESTDIR)/usr/bin \
+		$(DESTDIR)/usr/share/abuelazo-nemo-actions/lib \
+		$(DESTDIR)/usr/share/abuelazo-nemo-actions/datos \
+		$(DESTDIR)/usr/share/abuelazo-nemo-actions/actions \
+		$(DESTDIR)/usr/share/applications \
+		$(DESTDIR)/etc/xdg/autostart \
+		$(DESTDIR)/usr/share/doc/abuelazo-nemo-actions \
+		$(DESTDIR)/usr/share/lintian/overrides
+	for script in src/bin/*; do \
+		[ -f "$$script" ] || continue; \
+		install -m 0755 "$$script" $(DESTDIR)/usr/bin/; \
+	done
+	install -m 0644 src/lib/abuelazo-common.sh \
+		$(DESTDIR)/usr/share/abuelazo-nemo-actions/lib/abuelazo-common.sh
+	install -m 0644 catalog.json \
+		$(DESTDIR)/usr/share/abuelazo-nemo-actions/catalog.json
+	for action in src/actions/*.nemo_action; do \
+		install -m 0644 "$$action" \
+			$(DESTDIR)/usr/share/abuelazo-nemo-actions/actions/; \
+	done
+	for icono in src/icons/hicolor/*/apps/*.png; do \
+		[ -f "$$icono" ] || continue; \
+		ruta=$${icono#src/icons/}; \
+		install -D -m 0644 "$$icono" $(DESTDIR)/usr/share/icons/$$ruta; \
+	done
+	install -m 0755 src/config/abuelazo-nemo-config \
+		$(DESTDIR)/usr/bin/abuelazo-nemo-config
+	for desktop in src/config/*.desktop; do \
+		install -m 0644 "$$desktop" $(DESTDIR)/usr/share/applications/; \
+		case "$$desktop" in \
+			*first-run*) \
+				install -m 0644 "$$desktop" $(DESTDIR)/etc/xdg/autostart/; \
+				;; \
+		esac; \
+	done
+	install -m 0644 debian/copyright \
+		$(DESTDIR)/usr/share/doc/abuelazo-nemo-actions/copyright
+	gzip -n -9 -c debian/changelog > \
+		$(DESTDIR)/usr/share/doc/abuelazo-nemo-actions/changelog.Debian.gz
+	install -m 0644 debian/abuelazo-nemo-actions.lintian-overrides \
+		$(DESTDIR)/usr/share/lintian/overrides/abuelazo-nemo-actions

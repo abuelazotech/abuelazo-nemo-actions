@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Copia de seguridad con fecha
+Comment=Copia el archivo o carpeta seleccionada con la fecha en el nombre
+Exec=/usr/bin/abuelazo-backup-fecha %F
+Icon-Name=document-save-as
+Selection=s
+Extensions=any;
+Quote=double
+Dependencies=cp;zenity;
+Terminal=false

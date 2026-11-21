@@ -1,0 +1,25 @@
+#!/bin/bash
+set -uo pipefail
+LIB="${ABUELAZO_LIB_DIR:-/usr/share/abuelazo-nemo-actions/lib}/abuelazo-common.sh"
+[[ -f $LIB ]] || { printf 'No se encontró la librería común de Abuelazo.\n' >&2; exit 1; }
+. "$LIB"
+
+aba_requerir_args 1 1 "$#"
+ARCHIVO=$(aba_decodificar_uri "$1")
+[[ -e $ARCHIVO ]] || aba_error 'No se encuentra el archivo o carpeta seleccionada.'
+FECHA=$(date +%F)
+NOMBRE=$(basename -- "$ARCHIVO")
+DIRECTORIO=$(dirname -- "$ARCHIVO")
+if [[ -d $ARCHIVO || $NOMBRE != *.* || $NOMBRE == .* ]]; then
+  BASE="$ARCHIVO"
+  EXTENSION=''
+else
+  BASE="$DIRECTORIO/${NOMBRE%.*}"
+  EXTENSION=bak
+fi
+SALIDA=$(aba_salida_unica_sufijo "$BASE" "_$FECHA" "$EXTENSION")
+[[ ! -e $SALIDA ]] || aba_error 'La copia de seguridad ya existe.'
+if ! cp -a -- "$ARCHIVO" "$SALIDA"; then
+  aba_error 'No se pudo crear la copia de seguridad.'
+fi
+aba_resultado 'Copia de seguridad creada' "$SALIDA"

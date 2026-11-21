@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Convertir documento a PDF
+Comment=Exporta los documentos de LibreOffice seleccionados a PDF
+Exec=/usr/bin/abuelazo-documento-a-pdf %F
+Icon-Name=application-pdf
+Selection=m
+Extensions=odt;ods;odp;odg;odf;odb;
+Quote=double
+Dependencies=libreoffice;
+Terminal=false

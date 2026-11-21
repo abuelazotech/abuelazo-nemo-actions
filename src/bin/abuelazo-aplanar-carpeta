@@ -1,0 +1,30 @@
+#!/bin/bash
+set -uo pipefail
+LIB="${ABUELAZO_LIB_DIR:-/usr/share/abuelazo-nemo-actions/lib}/abuelazo-common.sh"
+[[ -f $LIB ]] || { printf 'No se encontró la librería común de Abuelazo.\n' >&2; exit 1; }
+. "$LIB"
+
+aba_requerir_args 1 1 "$#"
+CARPETA=$(aba_decodificar_uri "$1")
+[[ -d $CARPETA ]] || aba_error 'La carpeta indicada no existe.'
+aba_requerir find mv
+if ! aba_confirmar '¿Mover todos los archivos de las subcarpetas a la carpeta principal?'; then
+  aba_notificar "$ABA_TITULO" 'Operación cancelada.'
+  exit 0
+fi
+while IFS= read -r -d '' ORIGEN; do
+  NOMBRE=$(basename -- "$ORIGEN")
+  BASE="${NOMBRE%.*}"
+  EXT=''
+  if [[ $NOMBRE == *.* ]]; then
+    EXT="${NOMBRE##*.}"
+  else
+    BASE="$NOMBRE"
+  fi
+  DESTINO=$(aba_salida_unica "$CARPETA/$BASE" "$EXT")
+  if ! mv -n -- "$ORIGEN" "$DESTINO"; then
+    aba_error "No se pudo mover el archivo: $NOMBRE"
+  fi
+done < <(find "$CARPETA" -mindepth 2 -type f -print0)
+find "$CARPETA" -mindepth 1 -depth -type d -empty -delete
+aba_resultado 'Archivos movidos a la carpeta principal' "$CARPETA"

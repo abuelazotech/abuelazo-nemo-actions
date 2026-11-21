@@ -1,28 +1,31 @@
 #!/bin/bash
-# Crea un documento en blanco de LibreOffice en la carpeta indicada.
-# Uso: abuelazo-nuevo-documento <extension> <carpeta>
-set -u
-ext="$1"
-dir="$2"
+set -uo pipefail
+LIB="${ABUELAZO_LIB_DIR:-/usr/share/abuelazo-nemo-actions/lib}/abuelazo-common.sh"
+[[ -f $LIB ]] || { printf 'No se encontró la librería común de Abuelazo.\n' >&2; exit 1; }
+. "$LIB"
 
-case "$ext" in
-  odt) base="Nuevo_Documento" ;;
-  ods) base="Nueva_Hoja_De_Calculo" ;;
-  odp) base="Nueva_Presentacion" ;;
-  odg) base="Nuevo_Dibujo" ;;
-  odf) base="Nueva_Formula" ;;
-  *)   base="Nuevo_Archivo" ;;
+aba_requerir_args 2 2 "$#"
+EXTENSION="${1,,}"
+CARPETA=$(aba_decodificar_uri "$2")
+case "$EXTENSION" in
+  odt) BASE='Nuevo_Documento' ;;
+  ods) BASE='Nueva_Hoja_De_Calculo' ;;
+  odp) BASE='Nueva_Presentacion' ;;
+  odg) BASE='Nuevo_Dibujo' ;;
+  odf) BASE='Nueva_Formula' ;;
+  odb) BASE='Nueva_Base_De_Datos' ;;
+  *) aba_error "Extensión no admitida: $EXTENSION" ;;
 esac
-
-destino="$dir/$base.$ext"
-i=2
-while [ -e "$destino" ]; do
-  destino="$dir/$base-$i.$ext"
-  i=$((i+1))
-done
-
-if ! touch "$destino" 2>/dev/null; then
-  notify-send "El Abuelazo Tech" "No se pudo crear el archivo. ¿Permisos de la carpeta?"
-  exit 1
+[[ -d $CARPETA ]] || aba_error 'La carpeta indicada no existe.'
+SALIDA=$(aba_salida_unica "$CARPETA/$BASE" "$EXTENSION")
+[[ ! -e $SALIDA ]] || aba_error 'El documento de salida ya existe.'
+if ! touch "$SALIDA" 2>/dev/null; then
+  aba_error 'No se pudo crear el documento. Revisa los permisos de la carpeta.'
 fi
-libreoffice "$destino" >/dev/null 2>&1 &
+if command -v libreoffice >/dev/null 2>&1; then
+  libreoffice "$SALIDA" >/dev/null 2>&1 &
+  MENSAJE="Documento creado y abierto: $(basename -- "$SALIDA")"
+else
+  MENSAJE="Documento creado, pero LibreOffice no está disponible: $(basename -- "$SALIDA")"
+fi
+aba_resultado "$MENSAJE" "$SALIDA"

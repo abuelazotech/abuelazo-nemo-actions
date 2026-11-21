@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Cifrar archivo
+Comment=Sustituye el archivo por su versión cifrada
+Exec=/usr/bin/abuelazo-cifrar-archivo %F
+Icon-Name=system-lock-screen
+Selection=s
+Extensions=any;
+Quote=double
+Dependencies=gpg;zenity;
+Terminal=false

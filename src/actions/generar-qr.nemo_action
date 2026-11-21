@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Generar código QR
+Comment=Crea un código QR a partir del texto indicado
+Exec=/usr/bin/abuelazo-generar-qr %F
+Icon-Name=abuelazo-qr-code
+Selection=any
+Extensions=any;
+Quote=double
+Dependencies=qrencode;zenity;
+Terminal=false

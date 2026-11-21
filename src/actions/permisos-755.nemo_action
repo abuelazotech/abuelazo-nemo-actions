@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Aplicar permisos 755
+Comment=Asigna permisos de lectura, escritura y ejecución (755)
+Exec=/usr/bin/abuelazo-permisos 755 %F
+Icon-Name=document-properties
+Selection=m
+Extensions=any;
+Quote=double
+Dependencies=chmod;
+Terminal=false

@@ -1,8 +1,0 @@
-Package: abuelazo-nemo-actions
-Version: 1.1
-Section: utils
-Priority: optional
-Architecture: all
-Depends: ffmpeg, imagemagick, libreoffice
-Maintainer: El Abuelazo Tech <https://youtube.com/@elabuelazotech>
-Description: Paquete de Nemo Actions optimizado por El Abuelazo Tech para productividad en Linux Mint.

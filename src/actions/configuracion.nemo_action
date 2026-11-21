@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Configuración
+Comment=Abrir la configuración de Abuelazo Nemo Actions
+Exec=/usr/bin/abuelazo-nemo-config
+Icon-Name=preferences-system
+Selection=any
+Extensions=any;
+Quote=double
+Dependencies=python3;zenity;
+Terminal=false

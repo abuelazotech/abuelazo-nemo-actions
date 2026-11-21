@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Rotar imágenes
+Comment=Gira las imágenes seleccionadas
+Exec=/usr/bin/abuelazo-rotar-imagenes %F
+Icon-Name=object-rotate-right
+Selection=m
+Extensions=png;jpg;jpeg;tif;tiff;webp;
+Quote=double
+Dependencies=convert;zenity;
+Terminal=false

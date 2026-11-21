@@ -1,0 +1,47 @@
+#!/bin/bash
+set -uo pipefail
+LIB="${ABUELAZO_LIB_DIR:-/usr/share/abuelazo-nemo-actions/lib}/abuelazo-common.sh"
+if [[ ! -f $LIB ]]; then
+  printf 'No se encontró la librería común de Abuelazo.\n' >&2
+  exit 1
+fi
+source "$LIB"
+aba_requerir_args 1 9999 "$#"
+ARCHIVOS=()
+for ARGUMENTO in "$@"; do
+  ARCHIVOS+=("$(aba_decodificar_uri "$ARGUMENTO")")
+done
+LOG=$(aba_log_temporal 'marca')
+trap 'rm -f -- "$LOG"' EXIT
+if command -v magick >/dev/null 2>&1; then
+  IM=magick
+else
+  IM=convert
+fi
+aba_requerir zenity "$IM"
+TEXTO=$(aba_entrada 'Texto de la marca de agua' 'Abuelazo Tech') || aba_error 'No se pudo leer el texto'
+[[ -n $TEXTO ]] || aba_error 'El texto de la marca de agua no puede estar vacío'
+CONTADOR=0
+for ARCHIVO in "${ARCHIVOS[@]}"; do
+  [[ -f $ARCHIVO ]] || aba_error "No se encuentra la imagen: $ARCHIVO"
+  EXTENSION="${ARCHIVO##*.}"
+  EXTENSION="${EXTENSION,,}"
+  case "$EXTENSION" in
+    jpg|jpeg|png|gif|bmp|tif|tiff|webp) ;;
+    *) aba_error "Formato de imagen no admitido: $ARCHIVO" ;;
+  esac
+  BASE="${ARCHIVO%.*}"
+  if [[ $EXTENSION == webp ]]; then
+    SALIDA=$(aba_salida_unica_sufijo "$BASE" "_marcada" "webp")
+  else
+    SALIDA=$(aba_salida_unica_sufijo "$BASE" "_marcada" "jpg")
+  fi
+  if ! "$IM" "$ARCHIVO" -gravity southeast -pointsize 28 -fill white -stroke black -strokewidth 2 -annotate +10+10 "$TEXTO" "$SALIDA" >"$LOG" 2>&1; then
+    DETALLES=$(<"$LOG")
+    aba_error "No se pudo marcar la imagen. $DETALLES"
+  fi
+  [[ -f $SALIDA ]] || aba_error "No se creó la imagen marcada de $ARCHIVO"
+  CONTADOR=$((CONTADOR + 1))
+done
+DIRECTORIO=$(dirname -- "${ARCHIVOS[0]}")
+aba_resultado "Imágenes marcadas: $CONTADOR" "$DIRECTORIO"

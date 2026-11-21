@@ -1,0 +1,375 @@
+#!/usr/bin/env python3
+import json
+import os
+import sys
+import shutil
+import subprocess
+import pathlib
+
+MAPA_BINARIOS = {
+    'imagemagick': 'convert',
+    'ffmpeg': 'ffmpeg',
+    'coreutils': 'sha256sum',
+    'findutils': 'find',
+    'tree': 'tree',
+    'poppler-utils': 'pdfunite',
+    'libreoffice': 'libreoffice',
+    'webp': 'cwebp',
+    'gnupg': 'gpg',
+    'libimage-exiftool-perl': 'exiftool',
+    'xclip': 'xclip',
+    'qrencode': 'qrencode',
+    'zenity': 'zenity',
+    'libnotify-bin': 'notify-send',
+    'diffutils': 'diff',
+    'meld': 'meld',
+}
+
+MENSAJE_APLICADO = 'Configuración aplicada. Si no aparece el submenú, cierra y vuelve a abrir Nemo.'
+UUID_SUBMENU = 'abuelazo-nemo-actions'
+UUID_CONFIGURACION = 'configuracion.nemo_action'
+ETIQUETA_SUBMENU = 'Abuelazo Nemo Actions'
+ICONO_SUBMENU = 'abuelazo-nemo-actions'
+ICONOS_CATEGORIA = {
+    'Multimedia': 'applications-multimedia',
+    'Ofimática': 'applications-office',
+    'Seguridad': 'security-high',
+    'Organización': 'system-file-manager',
+    'Migración': 'system-run',
+    'Utilidades': 'applications-utilities',
+}
+RUTA_ACCIONES_SISTEMA = '/usr/share/abuelazo-nemo-actions/actions'
+
+
+def ruta_catalogo():
+    return os.environ.get('ABUELAZO_CATALOG', '/usr/share/abuelazo-nemo-actions/catalog.json')
+
+
+def ruta_estado():
+    return os.path.expanduser('~/.config/abuelazo-nemo-actions/estado.json')
+
+
+def ruta_acciones_usuario():
+    return os.path.expanduser('~/.local/share/nemo/actions')
+
+
+def ruta_arbol():
+    return os.path.expanduser('~/.config/nemo/actions-tree.json')
+
+
+def cargar_catalogo():
+    with open(ruta_catalogo(), encoding='utf-8') as archivo:
+        datos = json.load(archivo)
+    return datos.get('actions', [])
+
+
+def cargar_estado(acciones):
+    if os.path.exists(ruta_estado()):
+        try:
+            with open(ruta_estado(), encoding='utf-8') as archivo:
+                datos = json.load(archivo)
+            return set(datos.get('enabled', []))
+        except (OSError, ValueError):
+            pass
+    return {accion['id'] for accion in acciones if accion.get('default')}
+
+
+def origen_accion(identificador):
+    alternativa = os.environ.get('ABUELAZO_ACTIONS_DIR')
+    if alternativa:
+        return os.path.join(alternativa, identificador + '.nemo_action')
+    return os.path.join(RUTA_ACCIONES_SISTEMA, identificador + '.nemo_action')
+
+
+def dependencias_faltantes(acciones, habilitadas=None):
+    faltantes = set()
+    for accion in acciones:
+        if habilitadas is not None and accion['id'] not in habilitadas:
+            continue
+        for dependencia in accion.get('deps', []):
+            binario = MAPA_BINARIOS.get(dependencia, dependencia)
+            if shutil.which(binario) is None:
+                faltantes.add(dependencia)
+    return sorted(faltantes)
+
+
+def nodo_categoria(categoria, acciones, habilitadas):
+    hijos = []
+    for accion in acciones:
+        if accion['id'] in habilitadas and accion.get('category') == categoria:
+            hijos.append({
+                'uuid': accion['id'] + '.nemo_action',
+                'type': 'action',
+                'user-label': None,
+                'user-icon': None,
+            })
+    return {
+        'uuid': UUID_SUBMENU + '-' + categoria.lower(),
+        'type': 'submenu',
+        'user-label': categoria,
+        'user-icon': ICONOS_CATEGORIA.get(categoria),
+        'children': hijos,
+    }
+
+
+def cargar_nodos_arbol(ruta):
+    try:
+        with open(ruta, encoding='utf-8') as archivo:
+            existente = json.load(archivo)
+    except (OSError, ValueError):
+        return []
+    if isinstance(existente, dict):
+        nodos = existente.get('toplevel', [])
+    else:
+        nodos = existente
+    return [nodo for nodo in nodos if isinstance(nodo, dict)] if isinstance(nodos, list) else []
+
+
+def construir_arbol(acciones, habilitadas):
+    nodos = cargar_nodos_arbol(ruta_arbol())
+    nodos = [nodo for nodo in nodos if nodo.get('uuid') != UUID_SUBMENU]
+    categorias = []
+    for accion in acciones:
+        categoria = accion.get('category', '')
+        if accion['id'] in habilitadas and categoria not in categorias:
+            categorias.append(categoria)
+    hijos = [{
+        'uuid': UUID_CONFIGURACION,
+        'type': 'action',
+        'user-label': None,
+        'user-icon': None,
+    }]
+    hijos.extend(nodo_categoria(categoria, acciones, habilitadas) for categoria in categorias)
+    nodos.append({
+        'uuid': UUID_SUBMENU,
+        'type': 'submenu',
+        'user-label': ETIQUETA_SUBMENU,
+        'user-icon': ICONO_SUBMENU,
+        'children': hijos,
+    })
+    return {'toplevel': nodos}
+
+
+def limpiar_enlaces_huerfanos(ruta_acciones, permitidos):
+    raices = [pathlib.Path(RUTA_ACCIONES_SISTEMA)]
+    alternativa = os.environ.get('ABUELAZO_ACTIONS_DIR')
+    if alternativa:
+        raices.append(pathlib.Path(alternativa))
+    raices_resueltas = []
+    for raiz in raices:
+        try:
+            raices_resueltas.append(raiz.resolve())
+        except OSError:
+            continue
+    for enlace in ruta_acciones.iterdir():
+        if not enlace.is_symlink() or enlace.name in permitidos:
+            continue
+        try:
+            destino = enlace.resolve()
+        except OSError:
+            continue
+        for raiz in raices_resueltas:
+            try:
+                destino.relative_to(raiz)
+            except ValueError:
+                continue
+            try:
+                enlace.unlink()
+            except OSError:
+                pass
+            break
+
+
+def aplicar(ids):
+    acciones = cargar_catalogo()
+    habilitadas = set(ids)
+    ruta_acciones = pathlib.Path(ruta_acciones_usuario())
+    ruta_config = pathlib.Path(ruta_estado()).parent
+    ruta_arbol_archivo = pathlib.Path(ruta_arbol())
+    ruta_acciones.mkdir(parents=True, exist_ok=True)
+    ruta_config.mkdir(parents=True, exist_ok=True)
+    ruta_arbol_archivo.parent.mkdir(parents=True, exist_ok=True)
+    nombres = {accion['id'] + '.nemo_action' for accion in acciones}
+    nombres.add(UUID_CONFIGURACION)
+    limpiar_enlaces_huerfanos(ruta_acciones, nombres)
+    with open(ruta_estado(), 'w', encoding='utf-8') as archivo:
+        json.dump({'version': 1, 'enabled': sorted(habilitadas)}, archivo, indent=2, ensure_ascii=False)
+        archivo.write('\n')
+    for accion in acciones:
+        identificador = accion['id']
+        destino = ruta_acciones / (identificador + '.nemo_action')
+        if identificador in habilitadas:
+            origen = origen_accion(identificador)
+            if destino.is_symlink() or destino.is_file():
+                destino.unlink()
+            try:
+                destino.symlink_to(origen)
+            except OSError as error:
+                raise RuntimeError(f'No se pudo activar {identificador}: {error}') from error
+        elif destino.is_symlink():
+            destino.unlink()
+    destino_config = ruta_acciones / UUID_CONFIGURACION
+    if destino_config.is_symlink() or destino_config.is_file():
+        destino_config.unlink()
+    try:
+        destino_config.symlink_to(origen_accion('configuracion'))
+    except OSError as error:
+        raise RuntimeError(f'No se pudo activar la configuración: {error}') from error
+    arbol = construir_arbol(acciones, habilitadas)
+    with open(ruta_arbol(), 'w', encoding='utf-8') as archivo:
+        json.dump(arbol, archivo, indent=2, ensure_ascii=False)
+        archivo.write('\n')
+    try:
+        subprocess.run(['notify-send', MENSAJE_APLICADO], check=False)
+    except OSError:
+        pass
+
+
+def interfaz_gtk(acciones, seleccionadas, Gtk):
+    modelo = Gtk.TreeStore(bool, str, str, str, str)
+
+    def poblar(filtro=''):
+        modelo.clear()
+        texto = filtro.lower()
+        for categoria in dict.fromkeys(accion.get('category', '') for accion in acciones):
+            visibles = []
+            for accion in acciones:
+                if accion.get('category') != categoria:
+                    continue
+                contenido = ' '.join([accion['name'], accion['id'], accion.get('category', '')]).lower()
+                if texto and texto not in contenido:
+                    continue
+                visibles.append(accion)
+            if not visibles:
+                continue
+            padre = modelo.append(None, [False, '', categoria, '', ''])
+            for accion in visibles:
+                modelo.append(padre, [
+                    accion['id'] in seleccionadas,
+                    accion['id'],
+                    categoria,
+                    accion['name'],
+                    ', '.join(accion.get('deps', [])),
+                ])
+
+    def actualizar_faltantes():
+        faltantes = dependencias_faltantes(acciones, seleccionadas)
+        texto = ', '.join(faltantes) if faltantes else 'ninguna'
+        etiqueta_dependencias.set_text('Dependencias faltantes: ' + texto)
+
+    def alternar(celda, ruta_texto, datos):
+        iterador = modelo.get_iter(ruta_texto)
+        if modelo.iter_depth(iterador) == 0:
+            return
+        valor = modelo.get_value(iterador, 0)
+        modelo.set_value(iterador, 0, not valor)
+        identificador = modelo.get_value(iterador, 1)
+        if valor:
+            seleccionadas.discard(identificador)
+        else:
+            seleccionadas.add(identificador)
+        actualizar_faltantes()
+
+    def sensibilidad(columna, celda, modelo_datos, iterador, datos):
+        celda.set_property('sensitive', modelo_datos.iter_depth(iterador) > 0)
+
+    vista = Gtk.TreeView(model=modelo)
+    alternador = Gtk.CellRendererToggle()
+    alternador.set_property('activatable', True)
+    alternador.connect('toggled', alternar)
+    columna_instalar = Gtk.TreeViewColumn('Instalar', alternador, active=0)
+    columna_instalar.set_cell_data_func(alternador, sensibilidad)
+    vista.append_column(columna_instalar)
+    for indice, titulo in ((1, 'ID'), (2, 'Categoría'), (3, 'Nombre'), (4, 'Dependencias')):
+        vista.append_column(Gtk.TreeViewColumn(titulo, Gtk.CellRendererText(), text=indice))
+
+    busqueda = Gtk.SearchEntry()
+    busqueda.connect('changed', lambda entrada: poblar(entrada.get_text()))
+
+    def instalar(boton):
+        aplicar(seleccionadas)
+        actualizar_faltantes()
+
+    def restaurar(boton):
+        seleccionadas.clear()
+        seleccionadas.update(accion['id'] for accion in acciones if accion.get('default'))
+        poblar(busqueda.get_text())
+        aplicar(seleccionadas)
+        actualizar_faltantes()
+
+    def instalar_dependencias(boton):
+        faltantes = dependencias_faltantes(acciones, seleccionadas)
+        if faltantes:
+            subprocess.run(['pkexec', 'apt-get', 'install', '-y'] + faltantes, check=False)
+        poblar(busqueda.get_text())
+        actualizar_faltantes()
+
+    def cerrar(boton):
+        Gtk.main_quit()
+
+    etiqueta_dependencias = Gtk.Label(label='')
+    ventana = Gtk.Window(title='Abuelazo Nemo Actions')
+    ventana.set_default_size(900, 600)
+    ventana.connect('destroy', Gtk.main_quit)
+    caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+    ventana.add(caja)
+    caja.pack_start(busqueda, False, False, 0)
+    desplazamiento = Gtk.ScrolledWindow()
+    desplazamiento.add(vista)
+    caja.pack_start(desplazamiento, True, True, 0)
+    caja.pack_start(etiqueta_dependencias, False, False, 0)
+    botonera = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+    for texto, funcion in (
+        ('Instalar seleccionadas', instalar),
+        ('Restaurar recomendadas', restaurar),
+        ('Instalar dependencias', instalar_dependencias),
+        ('Cerrar', cerrar),
+    ):
+        boton = Gtk.Button(label=texto)
+        boton.connect('clicked', funcion)
+        botonera.pack_start(boton, True, True, 0)
+    caja.pack_start(botonera, False, False, 0)
+    poblar()
+    actualizar_faltantes()
+    ventana.show_all()
+    Gtk.main()
+    return 0
+
+
+def interfaz_zenity(acciones, seleccionadas):
+    argumentos = [
+        'zenity', '--list', '--checklist',
+        '--column=Instalar', '--column=ID', '--column=Categoría',
+        '--column=Nombre', '--column=Dependencias',
+        '--width=900', '--height=600',
+    ]
+    for accion in acciones:
+        argumentos.append('TRUE' if accion['id'] in seleccionadas else 'FALSE')
+        argumentos.append(accion['id'])
+    try:
+        resultado = subprocess.run(argumentos, capture_output=True, text=True, check=False)
+    except OSError:
+        return 0
+    if resultado.returncode != 0:
+        return 0
+    elegidas = {parte.strip() for parte in resultado.stdout.split('|') if parte.strip()}
+    aplicar(elegidas)
+    return 0
+
+
+def main():
+    if '--first-run' in sys.argv[1:] and os.path.exists(ruta_estado()):
+        return 0
+    acciones = cargar_catalogo()
+    seleccionadas = cargar_estado(acciones)
+    try:
+        import gi
+        gi.require_version('Gtk', '3.0')
+        from gi.repository import Gtk
+    except Exception:
+        return interfaz_zenity(acciones, seleccionadas)
+    return interfaz_gtk(acciones, seleccionadas, Gtk)
+
+
+if __name__ == '__main__':
+    sys.exit(main())

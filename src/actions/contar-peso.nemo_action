@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Contar el peso de la carpeta
+Comment=Calcula el tamaño total de la carpeta seleccionada
+Exec=/usr/bin/abuelazo-contar-peso %F
+Icon-Name=document-properties
+Selection=s
+Extensions=dir;
+Quote=double
+Dependencies=find;du;
+Terminal=false

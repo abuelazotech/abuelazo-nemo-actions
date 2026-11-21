@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Copiar ruta
+Comment=Copia la ruta de lo seleccionado al portapapeles
+Exec=/usr/bin/abuelazo-copiar-ruta %F
+Icon-Name=edit-copy
+Selection=s
+Extensions=any;
+Quote=double
+Dependencies=xclip;
+Terminal=false

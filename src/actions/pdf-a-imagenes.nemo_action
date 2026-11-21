@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Convertir PDF a imágenes
+Comment=Convierte las páginas del PDF en imágenes
+Exec=/usr/bin/abuelazo-pdf-a-imagenes %F
+Icon-Name=application-pdf
+Selection=s
+Extensions=pdf;
+Quote=double
+Dependencies=pdftoppm;
+Terminal=false

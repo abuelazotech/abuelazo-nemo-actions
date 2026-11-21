@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Nueva hoja de cálculo de Calc
+Comment=Crea una hoja de cálculo ODS en esta carpeta
+Exec=/usr/bin/abuelazo-nuevo-documento ods %P
+Icon-Name=libreoffice-calc
+Selection=none
+Extensions=any;
+Quote=double
+Dependencies=libreoffice;
+Terminal=false

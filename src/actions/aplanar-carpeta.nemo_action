@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Aplanar carpeta
+Comment=Reúne en un nivel los archivos de las subcarpetas
+Exec=/usr/bin/abuelazo-aplanar-carpeta %F
+Icon-Name=folder-open
+Selection=s
+Extensions=dir;
+Quote=double
+Dependencies=find;
+Terminal=false

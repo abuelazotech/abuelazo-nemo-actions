@@ -1,0 +1,37 @@
+#!/bin/bash
+set -uo pipefail
+LIB="${ABUELAZO_LIB_DIR:-/usr/share/abuelazo-nemo-actions/lib}/abuelazo-common.sh"
+if [[ ! -f $LIB ]]; then
+  printf 'No se encontró la librería común de Abuelazo.\n' >&2
+  exit 1
+fi
+source "$LIB"
+aba_requerir_args 2 9999 "$#"
+ARCHIVOS=()
+for ARGUMENTO in "$@"; do
+  ARCHIVOS+=("$(aba_decodificar_uri "$ARGUMENTO")")
+done
+LOG=$(aba_log_temporal 'unir')
+trap 'rm -f -- "$LOG"' EXIT
+aba_requerir pdfunite
+for ARCHIVO in "${ARCHIVOS[@]}"; do
+  [[ -f $ARCHIVO ]] || aba_error "No se encuentra el archivo: $ARCHIVO"
+  EXTENSION="${ARCHIVO##*.}"
+  EXTENSION="${EXTENSION,,}"
+  [[ $EXTENSION == pdf ]] || aba_error "Solo se aceptan archivos PDF: $ARCHIVO"
+done
+mapfile -t ARCHIVOS < <(printf '%s\n' "${ARCHIVOS[@]}" | LC_ALL=C sort)
+PRIMERO="${ARCHIVOS[0]}"
+if [[ $PRIMERO == */* ]]; then
+  DIRECTORIO="${PRIMERO%/*}"
+else
+  DIRECTORIO='.'
+fi
+SALIDA=$(aba_salida_unica "$DIRECTORIO/combinado" "pdf")
+if pdfunite "${ARCHIVOS[@]}" "$SALIDA" >"$LOG" 2>&1; then
+  [[ -f $SALIDA ]] || aba_error 'No se creó el archivo combinado'
+  aba_resultado 'PDFs unidos' "$SALIDA"
+else
+  DETALLES=$(<"$LOG")
+  aba_error "No se pudieron unir los PDF. $DETALLES"
+fi

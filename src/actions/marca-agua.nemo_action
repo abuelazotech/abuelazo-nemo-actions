@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Añadir marca de agua
+Comment=Añade una marca de agua a las imágenes seleccionadas
+Exec=/usr/bin/abuelazo-marca-agua %F
+Icon-Name=image-x-generic
+Selection=m
+Extensions=png;jpg;jpeg;webp;
+Quote=double
+Dependencies=convert;zenity;
+Terminal=false

@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Nueva base de datos de Base
+Comment=Crea una base de datos ODB en esta carpeta
+Exec=/usr/bin/abuelazo-nuevo-documento odb %P
+Icon-Name=libreoffice-base
+Selection=none
+Extensions=any;
+Quote=double
+Dependencies=libreoffice;
+Terminal=false

@@ -1,0 +1,38 @@
+#!/bin/bash
+set -uo pipefail
+LIB="${ABUELAZO_LIB_DIR:-/usr/share/abuelazo-nemo-actions/lib}/abuelazo-common.sh"
+if [[ ! -f $LIB ]]; then
+  printf 'No se encontró la librería común de Abuelazo.\n' >&2
+  exit 1
+fi
+source "$LIB"
+es_decimal() {
+  [[ $1 =~ ^[0-9]+([.][0-9]+)?$ ]]
+}
+aba_requerir_args 1 1 "$#"
+ARCHIVO="$(aba_decodificar_uri "${1:-}")"
+LOG=$(aba_log_temporal 'gif')
+PALETA=$(mktemp "${TMPDIR:-/tmp}/abuelazo-paleta-XXXXXX.png")
+trap 'rm -f -- "$PALETA" "$LOG"' EXIT
+aba_requerir ffmpeg zenity
+[[ -n $ARCHIVO ]] || aba_error 'Falta el archivo de vídeo'
+[[ -f $ARCHIVO ]] || aba_error "No se encuentra el vídeo: $ARCHIVO"
+INICIO=$(aba_entrada 'Inicio en segundos' '0') || aba_error 'No se pudo leer el inicio'
+DURACION=$(aba_entrada 'Duración en segundos' '5') || aba_error 'No se pudo leer la duración'
+es_decimal "$INICIO" || aba_error 'El inicio debe ser un número decimal'
+es_decimal "$DURACION" || aba_error 'La duración debe ser un número decimal'
+if ! python3 -c 'import sys; valor=float(sys.argv[1]); sys.exit(0 if 0 < valor <= 60 else 1)' "$DURACION"; then
+  aba_error 'La duración debe ser mayor que 0 y menor o igual que 60'
+fi
+BASE="${ARCHIVO%.*}"
+SALIDA=$(aba_salida_unica "$BASE" "gif")
+if ! ffmpeg -ss "$INICIO" -t "$DURACION" -i "$ARCHIVO" -vf 'fps=12,scale=480:-1:flags=lanczos,palettegen' -y "$PALETA" >>"$LOG" 2>&1; then
+  DETALLES=$(<"$LOG")
+  aba_error "No se pudo crear la paleta. $DETALLES"
+fi
+if ! ffmpeg -ss "$INICIO" -t "$DURACION" -i "$ARCHIVO" -i "$PALETA" -lavfi 'fps=12,scale=480:-1:flags=lanczos[x];[x][1:v]paletteuse' -loop 0 "$SALIDA" >>"$LOG" 2>&1; then
+  DETALLES=$(<"$LOG")
+  aba_error "No se pudo crear el GIF. $DETALLES"
+fi
+[[ -f $SALIDA ]] || aba_error 'No se creó el archivo GIF'
+aba_resultado 'GIF creado' "$SALIDA"

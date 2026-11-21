@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Convertir imagen a JPG
+Comment=Convierte la imagen seleccionada a JPG sin sobrescribir nada
+Exec=/usr/bin/abuelazo-imagen-jpg %F
+Icon-Name=image-x-generic
+Selection=s
+Extensions=webp;png;tiff;tif;
+Quote=double
+Dependencies=convert;
+Terminal=false

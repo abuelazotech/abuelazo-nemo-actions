@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Extraer fotogramas
+Comment=Extrae imágenes del vídeo seleccionado
+Exec=/usr/bin/abuelazo-extraer-frames %F
+Icon-Name=image-x-generic
+Selection=s
+Extensions=mp4;mkv;webm;avi;mov;
+Quote=double
+Dependencies=ffmpeg;zenity;
+Terminal=false

@@ -1,22 +1,21 @@
 #!/bin/bash
-# Extrae el audio a MP3 sin sobrescribir nada.
-set -u
-ARCHIVO="${1:-}"
-[ -n "$ARCHIVO" ] || exit 1
-if [[ "$ARCHIVO" == file://* ]]; then
-  ARCHIVO=$(python3 -c "import sys,urllib.parse;print(urllib.parse.unquote(sys.argv[1][7:]))" "$ARCHIVO")
-fi
-[ -f "$ARCHIVO" ] || { notify-send "El Abuelazo Tech" "No se encuentra el archivo"; exit 1; }
+set -uo pipefail
+LIB="${ABUELAZO_LIB_DIR:-/usr/share/abuelazo-nemo-actions/lib}/abuelazo-common.sh"
+[[ -f $LIB ]] || { printf 'No se encontró la librería común de Abuelazo.\n' >&2; exit 1; }
+. "$LIB"
 
+aba_requerir_args 1 1 "$#"
+ARCHIVO=$(aba_decodificar_uri "$1")
+[[ -f $ARCHIVO ]] || aba_error 'No se encuentra el archivo seleccionado.'
+aba_requerir ffmpeg
 BASE="${ARCHIVO%.*}"
-SALIDA="$BASE.mp3"
-i=2
-while [ -e "$SALIDA" ]; do SALIDA="$BASE-$i.mp3"; i=$((i+1)); done
-
-LOG=$(mktemp /tmp/abuelazo-audio-XXXX.log)
+[[ $ARCHIVO == *.* ]] || BASE="$ARCHIVO"
+SALIDA=$(aba_salida_unica "$BASE" mp3)
+[[ ! -e $SALIDA ]] || aba_error 'El archivo MP3 de salida ya existe.'
+LOG=$(aba_log_temporal audio)
+trap 'rm -f -- "$LOG"' EXIT
 if ffmpeg -nostdin -n -i "$ARCHIVO" -vn -c:a libmp3lame -q:a 2 "$SALIDA" >"$LOG" 2>&1; then
-  notify-send "El Abuelazo Tech" "Audio extraído: $(basename "$SALIDA")"
+  aba_resultado 'Audio extraído' "$SALIDA"
 else
-  notify-send "El Abuelazo Tech" "Error al extraer el audio. Detalles: $LOG"
-  exit 1
+  aba_error 'No se pudo extraer el audio.'
 fi

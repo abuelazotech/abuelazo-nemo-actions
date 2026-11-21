@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Renombrar a minúsculas
+Comment=Convierte a minúsculas los nombres seleccionados
+Exec=/usr/bin/abuelazo-renombrar-case lower %F
+Icon-Name=accessories-text-editor
+Selection=m
+Extensions=any;
+Quote=double
+Dependencies=mv;
+Terminal=false

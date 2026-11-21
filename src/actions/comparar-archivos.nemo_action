@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Comparar archivos
+Comment=Compara los dos archivos seleccionados
+Exec=/usr/bin/abuelazo-comparar-archivos %F
+Icon-Name=edit-find
+Selection=m
+Extensions=any;
+Quote=double
+Dependencies=diff;zenity;
+Terminal=false

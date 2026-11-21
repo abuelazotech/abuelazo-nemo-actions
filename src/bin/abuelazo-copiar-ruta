@@ -1,0 +1,15 @@
+#!/bin/bash
+set -uo pipefail
+LIB="${ABUELAZO_LIB_DIR:-/usr/share/abuelazo-nemo-actions/lib}/abuelazo-common.sh"
+[[ -f $LIB ]] || { printf 'No se encontró la librería común de Abuelazo.\n' >&2; exit 1; }
+. "$LIB"
+
+aba_requerir_args 1 1 "$#"
+ARCHIVO=$(aba_decodificar_uri "$1")
+[[ -f $ARCHIVO ]] || aba_error 'No se encuentra el archivo seleccionado.'
+aba_requerir xclip realpath
+RUTA=$(realpath -- "$ARCHIVO") || aba_error 'No se pudo obtener la ruta absoluta.'
+if ! printf '%s' "$RUTA" | xclip -selection clipboard; then
+  aba_error 'No se pudo copiar la ruta al portapapeles.'
+fi
+aba_notificar "$ABA_TITULO" "Ruta copiada: $RUTA"

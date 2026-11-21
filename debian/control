@@ -1,0 +1,22 @@
+Source: abuelazo-nemo-actions
+Section: utils
+Priority: optional
+Maintainer: Angelino Santana (El Abuelazo Tech) <abuelazo@protonmail.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Homepage: https://github.com/abuelazotech/abuelazo-nemo-actions
+Rules-Requires-Root: no
+
+Package: abuelazo-nemo-actions
+Architecture: all
+Section: utils
+Priority: optional
+Maintainer: Angelino Santana (El Abuelazo Tech) <abuelazo@protonmail.com>
+Depends: nemo, libnotify-bin, python3, python3-gi, zenity, xclip
+Recommends: ffmpeg, imagemagick, libreoffice, poppler-utils, tree, webp, gnupg, libimage-exiftool-perl, qrencode
+Suggests: meld
+Description: Acciones contextuales para Nemo
+ Conjunto de acciones para el menú contextual de Nemo que permite activar o
+ desactivar utilidades desde un configurador GTK3 con respaldo zenity. Las
+ acciones activadas se enlazan en ~/.local/share/nemo/actions y se agrupan en
+ un submenú del actions-tree de Nemo.

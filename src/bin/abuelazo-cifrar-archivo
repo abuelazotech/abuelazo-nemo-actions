@@ -1,0 +1,30 @@
+#!/bin/bash
+set -uo pipefail
+LIB="${ABUELAZO_LIB_DIR:-/usr/share/abuelazo-nemo-actions/lib}/abuelazo-common.sh"
+[[ -f $LIB ]] || { printf 'No se encontró la librería común de Abuelazo.\n' >&2; exit 1; }
+. "$LIB"
+
+aba_requerir_args 1 1 "$#"
+ARCHIVO=$(aba_decodificar_uri "$1")
+[[ -f $ARCHIVO ]] || aba_error 'No se encuentra el archivo seleccionado.'
+aba_requerir gpg zenity
+CONTRASENA=$(aba_contrasena 'Escribe la contraseña para cifrar el archivo.')
+ESTADO=$?
+(( ESTADO == 0 )) || exit 0
+[[ -n $CONTRASENA ]] || aba_error 'La contraseña no puede estar vacía.'
+SALIDA=$(aba_salida_unica "$ARCHIVO" gpg)
+[[ ! -e $SALIDA ]] || aba_error 'El archivo cifrado ya existe.'
+TEMP=$(mktemp "$(dirname -- "$ARCHIVO")/.abuelazo-cifrar-XXXXXX") || aba_error 'No se pudo crear el archivo temporal.'
+if ! printf '%s\n' "$CONTRASENA" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 --output "$TEMP" --symmetric --cipher-algo AES256 "$ARCHIVO"; then
+  rm -f -- "$TEMP"
+  aba_error 'No se pudo cifrar el archivo.'
+fi
+if ! mv -- "$TEMP" "$SALIDA"; then
+  rm -f -- "$TEMP"
+  aba_error 'No se pudo finalizar el archivo cifrado.'
+fi
+if ! rm -f -- "$ARCHIVO"; then
+  aba_error 'No se pudo eliminar el archivo original.'
+fi
+unset CONTRASENA ESTADO
+aba_resultado 'Archivo cifrado' "$SALIDA"

@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Unir PDFs
+Comment=Une los PDF seleccionados en uno solo
+Exec=/usr/bin/abuelazo-unir-pdfs %F
+Icon-Name=document-open
+Selection=m
+Extensions=pdf;
+Quote=double
+Dependencies=pdfunite;
+Terminal=false

@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Renombrar serie
+Comment=Renombra los archivos seleccionados con números correlativos
+Exec=/usr/bin/abuelazo-renombrar-serie %F
+Icon-Name=accessories-text-editor
+Selection=m
+Extensions=any;
+Quote=double
+Dependencies=mv;
+Terminal=false

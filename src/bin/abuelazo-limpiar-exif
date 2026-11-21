@@ -1,0 +1,27 @@
+#!/bin/bash
+set -uo pipefail
+LIB="${ABUELAZO_LIB_DIR:-/usr/share/abuelazo-nemo-actions/lib}/abuelazo-common.sh"
+[[ -f $LIB ]] || { printf 'No se encontró la librería común de Abuelazo.\n' >&2; exit 1; }
+. "$LIB"
+
+aba_requerir_args 1 1 "$#"
+ARCHIVO=$(aba_decodificar_uri "$1")
+[[ -f $ARCHIVO ]] || aba_error 'No se encuentra la imagen seleccionada.'
+aba_requerir exiftool
+BASE="${ARCHIVO%.*}"
+EXT=''
+if [[ $ARCHIVO == *.* ]]; then
+  EXT="${ARCHIVO##*.}"
+else
+  BASE="$ARCHIVO"
+fi
+SALIDA=$(aba_salida_unica_sufijo "$BASE" '_sin_exif' "$EXT")
+[[ ! -e $SALIDA ]] || aba_error 'La imagen sin EXIF ya existe.'
+if ! cp -a -- "$ARCHIVO" "$SALIDA"; then
+  aba_error 'No se pudo copiar la imagen.'
+fi
+if ! exiftool -all= -overwrite_original "$SALIDA" >/dev/null 2>&1; then
+  rm -f -- "$SALIDA"
+  aba_error 'No se pudieron eliminar los datos EXIF.'
+fi
+aba_resultado 'Imagen sin EXIF creada' "$SALIDA"

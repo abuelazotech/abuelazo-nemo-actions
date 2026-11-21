@@ -1,0 +1,52 @@
+#!/bin/bash
+set -uo pipefail
+LIB="${ABUELAZO_LIB_DIR:-/usr/share/abuelazo-nemo-actions/lib}/abuelazo-common.sh"
+if [[ ! -f $LIB ]]; then
+  printf 'No se encontró la librería común de Abuelazo.\n' >&2
+  exit 1
+fi
+source "$LIB"
+aba_requerir_args 1 9999 "$#"
+ARCHIVOS=()
+for ARGUMENTO in "$@"; do
+  ARCHIVOS+=("$(aba_decodificar_uri "$ARGUMENTO")")
+done
+LOG=$(aba_log_temporal 'documento')
+TMP_OUT=$(mktemp -d)
+TMP="$TMP_OUT"
+trap 'rm -rf -- "$TMP_OUT"; rm -f -- "$LOG"' EXIT
+aba_requerir libreoffice mv
+for ARCHIVO in "${ARCHIVOS[@]}"; do
+  [[ -f $ARCHIVO ]] || aba_error "No se encuentra el documento: $ARCHIVO"
+  EXTENSION="${ARCHIVO##*.}"
+  EXTENSION="${EXTENSION,,}"
+  case "$EXTENSION" in
+    odt|ods|odp|odg|odf|odb) ;;
+    *) aba_error "Formato no admitido: $ARCHIVO" ;;
+  esac
+done
+if ! libreoffice -env:UserInstallation="file://$TMP/perfiltro" --headless --convert-to pdf --outdir "$TMP_OUT" "${ARCHIVOS[@]}" >"$LOG" 2>&1; then
+  DETALLES=$(<"$LOG")
+  aba_error "No se pudieron convertir los documentos. $DETALLES"
+fi
+CONTADOR=0
+for ARCHIVO in "${ARCHIVOS[@]}"; do
+  NOMBRE="${ARCHIVO##*/}"
+  BASE="${NOMBRE%.*}"
+  PDF_TEMP="$TMP_OUT/$BASE.pdf"
+  [[ -f $PDF_TEMP ]] || aba_error "No se generó el PDF de $NOMBRE"
+  if [[ $ARCHIVO == */* ]]; then
+    DIRECTORIO="${ARCHIVO%/*}"
+  else
+    DIRECTORIO='.'
+  fi
+  DESTINO=$(aba_salida_unica "$DIRECTORIO/$BASE" "pdf")
+  if ! mv -n -- "$PDF_TEMP" "$DESTINO" >>"$LOG" 2>&1; then
+    DETALLES=$(<"$LOG")
+    aba_error "No se pudo mover el PDF de $NOMBRE. $DETALLES"
+  fi
+  [[ -f $DESTINO ]] || aba_error "No se encontró el PDF final de $NOMBRE"
+  CONTADOR=$((CONTADOR + 1))
+done
+DIRECTORIO=$(dirname -- "${ARCHIVOS[0]}")
+aba_resultado "Documentos convertidos: $CONTADOR" "$DIRECTORIO"

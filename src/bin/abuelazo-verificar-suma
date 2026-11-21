@@ -1,0 +1,20 @@
+#!/bin/bash
+set -uo pipefail
+LIB="${ABUELAZO_LIB_DIR:-/usr/share/abuelazo-nemo-actions/lib}/abuelazo-common.sh"
+[[ -f $LIB ]] || { printf 'No se encontró la librería común de Abuelazo.\n' >&2; exit 1; }
+. "$LIB"
+
+aba_requerir_args 1 1 "$#"
+ARCHIVO=$(aba_decodificar_uri "$1")
+[[ -f $ARCHIVO ]] || aba_error 'No se encuentra el archivo seleccionado.'
+aba_requerir sha256sum md5sum cut
+SHA=$(sha256sum "$ARCHIVO" | cut -d' ' -f1)
+MD5=$(md5sum "$ARCHIVO" | cut -d' ' -f1)
+TEXTO=$'SHA256: '"$SHA"$'\nMD5: '"$MD5"
+if command -v zenity >/dev/null 2>&1; then
+  if ! printf '%s\n' "$TEXTO" | zenity --text-info --title="$ABA_TITULO" --width=600 --height=200; then
+    aba_notificar "$ABA_TITULO" "SHA256: $SHA; MD5: $MD5"
+  fi
+else
+  aba_notificar "$ABA_TITULO" "SHA256: $SHA; MD5: $MD5"
+fi

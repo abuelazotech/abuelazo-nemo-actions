@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Mostrar árbol de directorios
+Comment=Muestra el árbol de la carpeta seleccionada
+Exec=/usr/bin/abuelazo-arbol-directorios %F
+Icon-Name=folder-open
+Selection=s
+Extensions=dir;
+Quote=double
+Dependencies=tree;
+Terminal=false

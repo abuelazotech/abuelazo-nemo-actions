@@ -1,0 +1,30 @@
+#!/bin/bash
+set -uo pipefail
+LIB="${ABUELAZO_LIB_DIR:-/usr/share/abuelazo-nemo-actions/lib}/abuelazo-common.sh"
+[[ -f $LIB ]] || { printf 'No se encontró la librería común de Abuelazo.\n' >&2; exit 1; }
+. "$LIB"
+
+aba_requerir_args 2 9999 "$#"
+PRIMERO=$(aba_decodificar_uri "$1")
+SEGUNDO=$(aba_decodificar_uri "$2")
+[[ -f $PRIMERO && -f $SEGUNDO ]] || aba_error 'Se necesitan dos archivos existentes.'
+if (( $# > 2 )); then
+  aba_notificar "$ABA_TITULO" 'Se compararán los dos primeros archivos seleccionados.'
+fi
+if command -v meld >/dev/null 2>&1; then
+  aba_notificar "$ABA_TITULO" 'Abriendo Meld para comparar los archivos.'
+  exec meld "$PRIMERO" "$SEGUNDO"
+fi
+aba_requerir diff
+DIRECTORIO=$(dirname -- "$PRIMERO")
+LOG=$(aba_salida_unica "$DIRECTORIO/diferencias" txt)
+diff -u -- "$PRIMERO" "$SEGUNDO" >"$LOG" 2>&1
+ESTADO=$?
+if (( ESTADO > 1 )); then
+  rm -f -- "$LOG"
+  aba_error 'No se pudo comparar los archivos.'
+fi
+if command -v zenity >/dev/null 2>&1; then
+  zenity --text-info --title="$ABA_TITULO" --filename="$LOG" || true
+fi
+aba_resultado 'Diferencias guardadas' "$LOG"

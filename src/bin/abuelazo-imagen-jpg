@@ -1,23 +1,26 @@
 #!/bin/bash
-# Convierte una imagen a JPG con fondo blanco si tiene transparencia.
-set -u
-ARCHIVO="${1:-}"
-[ -n "$ARCHIVO" ] || exit 1
-if [[ "$ARCHIVO" == file://* ]]; then
-  ARCHIVO=$(python3 -c "import sys,urllib.parse;print(urllib.parse.unquote(sys.argv[1][7:]))" "$ARCHIVO")
-fi
-[ -f "$ARCHIVO" ] || { notify-send "El Abuelazo Tech" "No se encuentra la imagen"; exit 1; }
-if command -v magick >/dev/null 2>&1; then IM=magick; else IM=convert; fi
+set -uo pipefail
+LIB="${ABUELAZO_LIB_DIR:-/usr/share/abuelazo-nemo-actions/lib}/abuelazo-common.sh"
+[[ -f $LIB ]] || { printf 'No se encontró la librería común de Abuelazo.\n' >&2; exit 1; }
+. "$LIB"
 
-BASE="${ARCHIVO%.*}"
-SALIDA="$BASE.jpg"
-i=2
-while [ -e "$SALIDA" ]; do SALIDA="$BASE-$i.jpg"; i=$((i+1)); done
-
-LOG=$(mktemp /tmp/abuelazo-jpg-XXXX.log)
-if "$IM" "${ARCHIVO}[0]" -auto-orient -background white -flatten -quality 92 -strip "$SALIDA" >"$LOG" 2>&1; then
-  notify-send "El Abuelazo Tech" "Imagen convertida: $(basename "$SALIDA")"
+aba_requerir_args 1 1 "$#"
+ARCHIVO=$(aba_decodificar_uri "$1")
+[[ -f $ARCHIVO ]] || aba_error 'No se encuentra la imagen seleccionada.'
+if command -v magick >/dev/null 2>&1; then
+  IM=magick
 else
-  notify-send "El Abuelazo Tech" "Error al convertir la imagen. Detalles: $LOG"
-  exit 1
+  IM=convert
+fi
+aba_requerir "$IM"
+BASE="${ARCHIVO%.*}"
+[[ $ARCHIVO == *.* ]] || BASE="$ARCHIVO"
+SALIDA=$(aba_salida_unica "$BASE" jpg)
+[[ ! -e $SALIDA ]] || aba_error 'La imagen de salida ya existe.'
+LOG=$(aba_log_temporal jpg)
+trap 'rm -f -- "$LOG"' EXIT
+if "$IM" "${ARCHIVO}[0]" -auto-orient -background white -flatten -quality 92 -strip "$SALIDA" >"$LOG" 2>&1; then
+  aba_resultado 'Imagen convertida a JPG' "$SALIDA"
+else
+  aba_error 'No se pudo convertir la imagen a JPG.'
 fi

@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Nuevo documento de Writer
+Comment=Crea un documento ODT en esta carpeta
+Exec=/usr/bin/abuelazo-nuevo-documento odt %P
+Icon-Name=libreoffice-writer
+Selection=none
+Extensions=any;
+Quote=double
+Dependencies=libreoffice;
+Terminal=false

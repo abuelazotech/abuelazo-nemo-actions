@@ -1,0 +1,20 @@
+#!/bin/bash
+set -uo pipefail
+LIB="${ABUELAZO_LIB_DIR:-/usr/share/abuelazo-nemo-actions/lib}/abuelazo-common.sh"
+[[ -f $LIB ]] || { printf 'No se encontró la librería común de Abuelazo.\n' >&2; exit 1; }
+. "$LIB"
+
+aba_requerir_args 0 "$#" "$#"
+aba_requerir qrencode zenity
+TEXTO=$(aba_entrada 'Texto o URL para el código QR' '')
+[[ -n $TEXTO ]] || aba_error 'No se introdujo texto para generar el código QR.'
+SLUG="${TEXTO,,}"
+SLUG="${SLUG//[^a-z0-9._-]/_}"
+SLUG="${SLUG:0:40}"
+[[ -n $SLUG ]] || SLUG='codigo'
+SALIDA=$(aba_salida_unica "$PWD/qr_$SLUG" png)
+if ! qrencode -o "$SALIDA" -s 8 "$TEXTO"; then
+  [[ ! -e $SALIDA ]] || rm -f -- "$SALIDA"
+  aba_error 'No se pudo generar el código QR.'
+fi
+aba_resultado 'Código QR creado' "$SALIDA"

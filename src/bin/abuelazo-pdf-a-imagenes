@@ -1,0 +1,28 @@
+#!/bin/bash
+set -uo pipefail
+LIB="${ABUELAZO_LIB_DIR:-/usr/share/abuelazo-nemo-actions/lib}/abuelazo-common.sh"
+if [[ ! -f $LIB ]]; then
+  printf 'No se encontró la librería común de Abuelazo.\n' >&2
+  exit 1
+fi
+source "$LIB"
+aba_requerir_args 1 1 "$#"
+ARCHIVO="$(aba_decodificar_uri "${1:-}")"
+LOG=$(aba_log_temporal 'imagenes')
+trap 'rm -f -- "$LOG"' EXIT
+aba_requerir pdftoppm
+[[ -n $ARCHIVO ]] || aba_error 'Falta el archivo PDF'
+[[ -f $ARCHIVO ]] || aba_error "No se encuentra el PDF: $ARCHIVO"
+EXTENSION="${ARCHIVO##*.}"
+EXTENSION="${EXTENSION,,}"
+[[ $EXTENSION == pdf ]] || aba_error "Solo se aceptan archivos PDF: $ARCHIVO"
+BASE="${ARCHIVO%.*}"
+DIRECTORIO=$(aba_salida_unica_sufijo "$BASE" "_imagenes" "")
+mkdir -p -- "$DIRECTORIO" || aba_error 'No se pudo crear el directorio de imágenes'
+if pdftoppm -png -r 150 "$ARCHIVO" "$DIRECTORIO/pagina" >"$LOG" 2>&1; then
+  compgen -G "$DIRECTORIO/pagina-*.png" >/dev/null || aba_error 'No se generaron imágenes'
+  aba_resultado 'Imágenes creadas' "$DIRECTORIO"
+else
+  DETALLES=$(<"$LOG")
+  aba_error "No se pudieron crear las imágenes. $DETALLES"
+fi

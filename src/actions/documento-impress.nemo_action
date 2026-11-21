@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Nueva presentación de Impress
+Comment=Crea una presentación ODP en esta carpeta
+Exec=/usr/bin/abuelazo-nuevo-documento odp %P
+Icon-Name=libreoffice-impress
+Selection=none
+Extensions=any;
+Quote=double
+Dependencies=libreoffice;
+Terminal=false

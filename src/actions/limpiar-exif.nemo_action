@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Limpiar metadatos EXIF
+Comment=Quita los metadatos de la imagen seleccionada
+Exec=/usr/bin/abuelazo-limpiar-exif %F
+Icon-Name=camera-photo
+Selection=s
+Extensions=jpg;jpeg;png;tif;tiff;webp;
+Quote=double
+Dependencies=exiftool;
+Terminal=false

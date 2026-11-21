@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Comprimir a WebP
+Comment=Convierte las imágenes seleccionadas a WebP
+Exec=/usr/bin/abuelazo-comprimir-webp %F
+Icon-Name=image-x-generic
+Selection=m
+Extensions=png;jpg;jpeg;tif;tiff;
+Quote=double
+Dependencies=cwebp;
+Terminal=false

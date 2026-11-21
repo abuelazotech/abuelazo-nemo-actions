@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Nuevo dibujo de Draw
+Comment=Crea un dibujo ODG en esta carpeta
+Exec=/usr/bin/abuelazo-nuevo-documento odg %P
+Icon-Name=libreoffice-draw
+Selection=none
+Extensions=any;
+Quote=double
+Dependencies=libreoffice;
+Terminal=false

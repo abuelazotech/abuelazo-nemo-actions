@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Renombrar a mayúsculas
+Comment=Convierte a mayúsculas los nombres seleccionados
+Exec=/usr/bin/abuelazo-renombrar-case upper %F
+Icon-Name=accessories-text-editor
+Selection=m
+Extensions=any;
+Quote=double
+Dependencies=mv;
+Terminal=false

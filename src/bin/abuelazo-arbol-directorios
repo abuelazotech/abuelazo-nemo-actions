@@ -1,0 +1,19 @@
+#!/bin/bash
+set -uo pipefail
+LIB="${ABUELAZO_LIB_DIR:-/usr/share/abuelazo-nemo-actions/lib}/abuelazo-common.sh"
+[[ -f $LIB ]] || { printf 'No se encontró la librería común de Abuelazo.\n' >&2; exit 1; }
+. "$LIB"
+
+aba_requerir_args 1 1 "$#"
+CARPETA=$(aba_decodificar_uri "$1")
+[[ -d $CARPETA ]] || aba_error 'La carpeta indicada no existe.'
+aba_requerir tree
+SALIDA=$(aba_salida_unica "$CARPETA/estructura" txt)
+if ! tree -a -I '.git' -o "$SALIDA" "$CARPETA"; then
+  [[ ! -e $SALIDA ]] || rm -f -- "$SALIDA"
+  aba_error 'No se pudo generar el árbol de directorios.'
+fi
+if command -v zenity >/dev/null 2>&1; then
+  zenity --text-info --title='Árbol de directorios - El Abuelazo Tech' --filename="$SALIDA" --width=1000 --height=700 --ok-label='Cerrar' || true
+fi
+aba_notificar "$ABA_TITULO" "Árbol de directorios guardado: $(basename -- "$SALIDA")"

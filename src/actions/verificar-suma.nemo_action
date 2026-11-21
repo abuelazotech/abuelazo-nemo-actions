@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Verificar SHA256 y MD5
+Comment=Calcula el SHA256 y el MD5 del archivo seleccionado
+Exec=/usr/bin/abuelazo-verificar-suma %F
+Icon-Name=security-high
+Selection=s
+Extensions=iso;img;zip;tar;gz;xz;deb;
+Quote=double
+Dependencies=sha256sum;md5sum;
+Terminal=false

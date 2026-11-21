@@ -1,0 +1,111 @@
+abuelazo-nemo-actions (1.3-16) stable; urgency=medium
+
+  * El menú usa el logo transparente de El Abuelazo Tech.
+  * Generar código QR usa un icono de código QR.
+
+ -- Angelino Santana (El Abuelazo Tech) <abuelazo@protonmail.com>  Sat, 21 Nov 2026 03:15:00 +0000
+
+abuelazo-nemo-actions (1.3-15) stable; urgency=medium
+
+  * El submenú usa el logo de El Abuelazo Tech como icono.
+  * Corregidos los iconos que no aparecían en el menú de Nemo.
+
+ -- Angelino Santana (El Abuelazo Tech) <abuelazo@protonmail.com>  Sat, 21 Nov 2026 02:45:00 +0000
+
+abuelazo-nemo-actions (1.3-14) stable; urgency=medium
+
+  * El submenú incluye Configuración como primera entrada.
+
+ -- Angelino Santana (El Abuelazo Tech) <abuelazo@protonmail.com>  Sat, 21 Nov 2026 02:15:00 +0000
+
+abuelazo-nemo-actions (1.3-13) stable; urgency=medium
+
+  * Cifrar y descifrar sustituyen el archivo original en sitio.
+
+ -- Angelino Santana (El Abuelazo Tech) <abuelazo@protonmail.com>  Sat, 21 Nov 2026 02:00:00 +0000
+
+abuelazo-nemo-actions (1.3-12) stable; urgency=medium
+
+  * El diálogo final selecciona el archivo o la carpeta resultante.
+
+ -- Angelino Santana (El Abuelazo Tech) <abuelazo@protonmail.com>  Sat, 21 Nov 2026 01:40:00 +0000
+
+abuelazo-nemo-actions (1.3-11) stable; urgency=medium
+
+  * Cifrar y descifrar funcionan con contraseña de zenity y están activados.
+
+ -- Angelino Santana (El Abuelazo Tech) <abuelazo@protonmail.com>  Sat, 21 Nov 2026 01:30:00 +0000
+
+abuelazo-nemo-actions (1.3-10) stable; urgency=medium
+
+  * Utilidades activadas y eliminadas las acciones de frases.
+
+ -- Angelino Santana (El Abuelazo Tech) <abuelazo@protonmail.com>  Sat, 21 Nov 2026 00:00:00 +0000
+
+abuelazo-nemo-actions (1.3-9) stable; urgency=medium
+
+  * Suite de LibreOffice completa y resultados con ruta.
+
+ -- Angelino Santana (El Abuelazo Tech) <abuelazo@protonmail.com>  Fri, 20 Nov 2026 16:20:00 +0000
+
+abuelazo-nemo-actions (1.3-8) stable; urgency=medium
+
+  * La copia con fecha muestra la ruta y permite abrirla.
+
+ -- Angelino Santana (El Abuelazo Tech) <abuelazo@protonmail.com>  Fri, 20 Nov 2026 16:00:00 +0000
+
+abuelazo-nemo-actions (1.3-7) stable; urgency=medium
+
+  * Copia con fecha para archivos y carpetas.
+
+ -- Angelino Santana (El Abuelazo Tech) <abuelazo@protonmail.com>  Fri, 20 Nov 2026 15:40:00 +0000
+
+abuelazo-nemo-actions (1.3-6) stable; urgency=medium
+
+  * El árbol de directorios se muestra en una ventana.
+
+ -- Angelino Santana (El Abuelazo Tech) <abuelazo@protonmail.com>  Fri, 20 Nov 2026 15:20:00 +0000
+
+abuelazo-nemo-actions (1.3-5) stable; urgency=medium
+
+  * Ajustados los identificadores al analizador de Nemo 6.6.3.
+
+ -- Angelino Santana (El Abuelazo Tech) <abuelazo@protonmail.com>  Fri, 20 Nov 2026 15:00:00 +0000
+
+abuelazo-nemo-actions (1.3-4) stable; urgency=medium
+
+  * Ajustados los identificadores al formato de Nemo 6.6.3.
+
+ -- Angelino Santana (El Abuelazo Tech) <abuelazo@protonmail.com>  Fri, 20 Nov 2026 14:45:00 +0000
+
+abuelazo-nemo-actions (1.3-3) stable; urgency=medium
+
+  * Corregidos los identificadores del diseño de acciones.
+
+ -- Angelino Santana (El Abuelazo Tech) <abuelazo@protonmail.com>  Fri, 20 Nov 2026 14:30:00 +0000
+
+abuelazo-nemo-actions (1.3-2) stable; urgency=medium
+
+  * Corregido el formato del submenú de Nemo.
+  * El diseño de acciones usa la clave toplevel.
+
+ -- Angelino Santana (El Abuelazo Tech) <abuelazo@protonmail.com>  Fri, 20 Nov 2026 14:00:00 +0000
+
+abuelazo-nemo-actions (1.3-1) stable; urgency=medium
+
+  * Banco local con tres categorías de frases.
+  * Nueva herramienta abuelazo-frases.
+  * Opción web con caché y atribución.
+  * La frase motivadora usa el banco local.
+
+ -- Angelino Santana (El Abuelazo Tech) <abuelazo@protonmail.com>  Fri, 20 Nov 2026 13:00:00 +0000
+
+abuelazo-nemo-actions (1.2-1) stable; urgency=medium
+
+  * Configurador GTK3 con fallback zenity.
+  * Submenú actions-tree para las acciones activadas.
+  * 33 acciones disponibles.
+  * Empaquetado Debian con lintian limpio.
+  * Integración continua y pruebas automatizadas.
+
+ -- Angelino Santana (El Abuelazo Tech) <abuelazo@protonmail.com>  Fri, 20 Nov 2026 12:00:00 +0000

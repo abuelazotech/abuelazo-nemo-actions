@@ -1,0 +1,29 @@
+#!/bin/bash
+set -uo pipefail
+LIB="${ABUELAZO_LIB_DIR:-/usr/share/abuelazo-nemo-actions/lib}/abuelazo-common.sh"
+if [[ ! -f $LIB ]]; then
+  printf 'No se encontró la librería común de Abuelazo.\n' >&2
+  exit 1
+fi
+source "$LIB"
+aba_requerir_args 2 9999 "$#"
+MODO="$1"
+shift
+LOG=$(aba_log_temporal 'permisos')
+trap 'rm -f -- "$LOG"' EXIT
+aba_requerir chmod
+[[ $MODO == 755 || $MODO == 644 ]] || aba_error 'El modo debe ser 755 o 644'
+ARCHIVOS=()
+for ARGUMENTO in "$@"; do
+  ARCHIVOS+=("$(aba_decodificar_uri "$ARGUMENTO")")
+done
+for ARCHIVO in "${ARCHIVOS[@]}"; do
+  [[ -e $ARCHIVO ]] || aba_error "No se encuentra el elemento: $ARCHIVO"
+done
+if ! chmod "$MODO" -- "${ARCHIVOS[@]}" >"$LOG" 2>&1; then
+  DETALLES=$(<"$LOG")
+  aba_error "No se pudieron aplicar los permisos. $DETALLES"
+fi
+CANTIDAD="${#ARCHIVOS[@]}"
+DIRECTORIO=$(dirname -- "${ARCHIVOS[0]}")
+aba_resultado "Permisos $MODO aplicados a $CANTIDAD elementos" "$DIRECTORIO"

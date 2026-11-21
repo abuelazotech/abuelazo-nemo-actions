@@ -1,31 +1,36 @@
 #!/bin/bash
-# Miniatura de YouTube 1280x720: recorta centrado, sin deformar.
-set -u
-ARCHIVO="${1:-}"
-[ -n "$ARCHIVO" ] || exit 1
-if [[ "$ARCHIVO" == file://* ]]; then
-  ARCHIVO=$(python3 -c "import sys,urllib.parse;print(urllib.parse.unquote(sys.argv[1][7:]))" "$ARCHIVO")
+set -uo pipefail
+LIB="${ABUELAZO_LIB_DIR:-/usr/share/abuelazo-nemo-actions/lib}/abuelazo-common.sh"
+[[ -f $LIB ]] || { printf 'No se encontró la librería común de Abuelazo.\n' >&2; exit 1; }
+. "$LIB"
+
+aba_requerir_args 1 1 "$#"
+ARCHIVO=$(aba_decodificar_uri "$1")
+[[ -f $ARCHIVO ]] || aba_error 'No se encuentra la imagen seleccionada.'
+if command -v magick >/dev/null 2>&1; then
+  IM=magick
+else
+  IM=convert
 fi
-[ -f "$ARCHIVO" ] || { notify-send "El Abuelazo Tech" "No se encuentra la imagen"; exit 1; }
-if command -v magick >/dev/null 2>&1; then IM=magick; else IM=convert; fi
-
+aba_requerir "$IM"
 BASE="${ARCHIVO%.*}"
-SALIDA="${BASE}_miniatura.jpg"
-i=2
-while [ -e "$SALIDA" ]; do SALIDA="${BASE}_miniatura-$i.jpg"; i=$((i+1)); done
-
-LOG=$(mktemp /tmp/abuelazo-miniatura-XXXX.log)
-if "$IM" "${ARCHIVO}[0]" -auto-orient -background white -flatten \
-     -resize 1280x720^ -gravity center -extent 1280x720 \
-     -quality 90 -strip "$SALIDA" >"$LOG" 2>&1; then
-  KB=$(du -k "$SALIDA" | cut -f1)
-  if [ "$KB" -gt 2048 ]; then
-    "$IM" "$SALIDA" -quality 82 -strip "$SALIDA" 2>>"$LOG"
-    notify-send "El Abuelazo Tech" "Miniatura lista (comprimida para YouTube): $(basename "$SALIDA")"
+[[ $ARCHIVO == *.* ]] || BASE="$ARCHIVO"
+SALIDA=$(aba_salida_unica_sufijo "$BASE" '_miniatura' jpg)
+LOG=$(aba_log_temporal miniatura)
+TEMP=''
+trap 'rm -f -- "$LOG"' EXIT
+if ! "$IM" "${ARCHIVO}[0]" -auto-orient -background white -flatten -resize '1280x720^' -gravity center -extent 1280x720 -quality 90 -strip "$SALIDA" >"$LOG" 2>&1; then
+  aba_error 'No se pudo crear la miniatura.'
+fi
+KB=$(du -k "$SALIDA" | cut -f1)
+if [[ $KB =~ ^[0-9]+$ ]] && (( KB > 2048 )); then
+  TEMP=$(mktemp "${TMPDIR:-/tmp}/abuelazo-miniatura-XXXXXX.jpg")
+  trap 'rm -f -- "$LOG" "$TEMP"' EXIT
+  if "$IM" "${SALIDA}[0]" -quality 82 -strip "$TEMP" >>"$LOG" 2>&1 && mv -f -- "$TEMP" "$SALIDA"; then
+    aba_resultado 'Miniatura lista y comprimida' "$SALIDA"
   else
-    notify-send "El Abuelazo Tech" "Miniatura lista: $(basename "$SALIDA") (${KB} KB)"
+    aba_error 'No se pudo comprimir la miniatura.'
   fi
 else
-  notify-send "El Abuelazo Tech" "Error al crear la miniatura. Detalles: $LOG"
-  exit 1
+  aba_resultado 'Miniatura lista' "$SALIDA"
 fi

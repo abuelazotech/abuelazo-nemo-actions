@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Nueva fórmula de Math
+Comment=Crea una fórmula ODF en esta carpeta
+Exec=/usr/bin/abuelazo-nuevo-documento odf %P
+Icon-Name=libreoffice-math
+Selection=none
+Extensions=any;
+Quote=double
+Dependencies=libreoffice;
+Terminal=false

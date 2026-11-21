@@ -1,0 +1,11 @@
+[Nemo Action]
+Active=true
+Name=Convertir vídeo a GIF
+Comment=Crea un GIF animado del vídeo seleccionado
+Exec=/usr/bin/abuelazo-video-a-gif %F
+Icon-Name=video-x-generic
+Selection=s
+Extensions=mp4;mkv;webm;avi;mov;
+Quote=double
+Dependencies=ffmpeg;zenity;
+Terminal=false

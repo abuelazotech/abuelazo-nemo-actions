@@ -1,0 +1,18 @@
+#!/bin/bash
+set -uo pipefail
+LIB="${ABUELAZO_LIB_DIR:-/usr/share/abuelazo-nemo-actions/lib}/abuelazo-common.sh"
+[[ -f $LIB ]] || { printf 'No se encontró la librería común de Abuelazo.\n' >&2; exit 1; }
+. "$LIB"
+
+aba_requerir_args 1 1 "$#"
+CARPETA=$(aba_decodificar_uri "$1")
+[[ -d $CARPETA ]] || aba_error 'La carpeta indicada no existe.'
+aba_requerir find du wc cut
+CANTIDAD=$(find "$CARPETA" -type f -print | wc -l)
+PESO=$(du -sh "$CARPETA" | cut -f1)
+TEXTO="Archivos: $CANTIDAD. Peso total: $PESO."
+if command -v zenity >/dev/null 2>&1; then
+  aba_mensaje "$TEXTO" || aba_notificar "$ABA_TITULO" "$TEXTO"
+else
+  aba_notificar "$ABA_TITULO" "$TEXTO"
+fi
